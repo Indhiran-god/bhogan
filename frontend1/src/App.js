@@ -99,56 +99,30 @@ const App = () => {
   }, []);
 
   return (
-    <div>
-      <section id="home" className="hero wow animate__fadeIn" data-wow-duration="1.5s">
-        <div className="hero-content">
-          <h1>Welcome to the Polo Marathon</h1>
-          <p>Run For Horses</p>
-          <a href="#register" className="btn">Register Now</a>
-        </div>
-      </section>
-
-      <section id="register" className="wow animate__fadeIn" data-wow-duration="1.5s">
-        <div className="container">
-          <h2>Marathon Registration Form</h2>
-          <form id="registrationForm">
-            <label htmlFor="name">Name</label>
-            <input type="text" id="name" name="name" placeholder="Enter your Full name" required />
-
-            <label htmlFor="email">Email</label>
-            <input type="email" id="email" name="email" placeholder="Enter your Email" required />
-
-            <label htmlFor="phone">Phone</label>
-            <input type="tel" id="phone" name="phone" placeholder="Enter your Phone number" required />
-
-            <label htmlFor="age">Age</label>
-            <input type="number" id="age" name="age" placeholder="Enter your Age" required />
-
-            <label htmlFor="gender">Gender</label>
-            <select id="gender" name="gender" required>
-              <option value="" disabled selected>Choose Gender...</option>
-              <option value="male">Male</option>
-              <option value="female">Female</option>
-              <option value="other">Other</option>
-            </select>
-
-            <label htmlFor="category">Run Category</label>
-            <select id="category" name="category" required>
-              <option value="" disabled selected>Choose Category...</option>
-              <option value="5km">5 km</option>
-              <option value="10km">10 km</option>
-              <option value="20km">20 km</option>
-            </select>
-
-            <button type="submit" id="payNow">Register</button>
-          </form>
-        </div>
-      </section>
-
-      <footer>
-        <p>&copy; 2025 Bhogan Mediasoft. All rights reserved.</p>
-      </footer>
+    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh", backgroundColor: "#f4f4f4", padding: "20px" }}>
+    <div style={{ backgroundColor: "white", padding: "30px", borderRadius: "8px", boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)", width: "100%", maxWidth: "500px" }}>
+      <h2 style={{ textAlign: "center", fontSize: "24px", fontWeight: "600", marginBottom: "20px" }}>Register for the Marathon</h2>
+      <form id="registrationForm" style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+        <input type="text" id="name" name="name" placeholder="Enter your name" style={{ padding: "10px", border: "1px solid #ccc", borderRadius: "4px" }} required />
+        <input type="email" id="email" name="email" placeholder="Enter your email" style={{ padding: "10px", border: "1px solid #ccc", borderRadius: "4px" }} required />
+        <input type="tel" id="phone" name="phone" placeholder="Enter your phone number" style={{ padding: "10px", border: "1px solid #ccc", borderRadius: "4px" }} required />
+        <input type="number" id="age" name="age" placeholder="Enter your age" style={{ padding: "10px", border: "1px solid #ccc", borderRadius: "4px" }} required />
+        <select id="gender" name="gender" style={{ padding: "10px", border: "1px solid #ccc", borderRadius: "4px" }} required>
+          <option value="" disabled selected>Select Gender</option>
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+          <option value="other">Other</option>
+        </select>
+        <select id="category" name="category" style={{ padding: "10px", border: "1px solid #ccc", borderRadius: "4px" }} required>
+          <option value="" disabled selected>Select Category</option>
+          <option value="5km">5 km</option>
+          <option value="10km">10 km</option>
+          <option value="20km">20 km</option>
+        </select>
+        <button type="submit" id="payNow" style={{ backgroundColor: "#28a745", color: "white", padding: "12px", borderRadius: "4px", fontSize: "16px", fontWeight: "bold", cursor: "pointer", marginTop: "10px" }}>Register & Pay</button>
+      </form>
     </div>
+  </div>
   );
 };
 

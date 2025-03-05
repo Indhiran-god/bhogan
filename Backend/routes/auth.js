@@ -61,10 +61,9 @@ Polo Marathon Team`,
 // 1️⃣ Create Razorpay Order
 router.post("/createOrder", async (req, res) => {
   try {
-    const { amount } = req.body;
 
     const options = {
-      amount: amount * 100, // Razorpay uses paise
+      amount: 499000, // Razorpay uses paise
       currency: "INR",
       receipt: `order_rcptid_${Date.now()}`,
     };

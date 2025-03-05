@@ -2,11 +2,13 @@ import React, { useEffect } from "react";
 
 const App = () => {
   useEffect(() => {
+    // Load WOW.js animation library
     const script1 = document.createElement("script");
     script1.src = "https://cdnjs.cloudflare.com/ajax/libs/wow/1.1.2/wow.min.js";
     script1.async = true;
     document.body.appendChild(script1);
 
+    // Load Razorpay checkout script
     const script2 = document.createElement("script");
     script2.src = "https://checkout.razorpay.com/v1/checkout.js";
     script2.async = true;
@@ -14,6 +16,11 @@ const App = () => {
 
     script1.onload = () => {
       if (window.WOW) new window.WOW().init();
+    };
+
+    return () => {
+      document.body.removeChild(script1);
+      document.body.removeChild(script2);
     };
   }, []);
 
@@ -31,11 +38,13 @@ const App = () => {
       };
 
       try {
-        const keyResponse = await fetch("http://localhost:8000/get-razorpay-key");
+        // Get Razorpay API key
+        const keyResponse = await fetch("https://bhogan-hpdi.vercel.app/get-razorpay-key");
         if (!keyResponse.ok) throw new Error("Failed to fetch Razorpay key");
         const { key } = await keyResponse.json();
 
-        const orderResponse = await fetch("http://localhost:8000/createOrder", {
+        // Create order on backend
+        const orderResponse = await fetch("https://bhogan-hpdi.vercel.app/createOrder", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ amount: 100 }),
@@ -43,6 +52,9 @@ const App = () => {
 
         if (!orderResponse.ok) throw new Error("Failed to create order");
         const order = await orderResponse.json();
+
+        // Ensure Razorpay is loaded
+        if (!window.Razorpay) throw new Error("Razorpay SDK failed to load. Refresh and try again.");
 
         const options = {
           key,
@@ -57,7 +69,8 @@ const App = () => {
               return;
             }
 
-            const saveResponse = await fetch("http://localhost:8000/api/auth/register", {
+            // Save registration data
+            const saveResponse = await fetch("https://bhogan-hpdi.vercel.app/api/auth/register", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
@@ -95,34 +108,39 @@ const App = () => {
       }
     };
 
-    document.getElementById("registrationForm")?.addEventListener("submit", handleSubmit);
+    const form = document.getElementById("registrationForm");
+    if (form) form.addEventListener("submit", handleSubmit);
+
+    return () => {
+      if (form) form.removeEventListener("submit", handleSubmit);
+    };
   }, []);
 
   return (
     <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh", backgroundColor: "#f4f4f4", padding: "20px" }}>
-    <div style={{ backgroundColor: "white", padding: "30px", borderRadius: "8px", boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)", width: "100%", maxWidth: "500px" }}>
-      <h2 style={{ textAlign: "center", fontSize: "24px", fontWeight: "600", marginBottom: "20px" }}>Register for the Marathon</h2>
-      <form id="registrationForm" style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-        <input type="text" id="name" name="name" placeholder="Enter your name" style={{ padding: "10px", border: "1px solid #ccc", borderRadius: "4px" }} required />
-        <input type="email" id="email" name="email" placeholder="Enter your email" style={{ padding: "10px", border: "1px solid #ccc", borderRadius: "4px" }} required />
-        <input type="tel" id="phone" name="phone" placeholder="Enter your phone number" style={{ padding: "10px", border: "1px solid #ccc", borderRadius: "4px" }} required />
-        <input type="number" id="age" name="age" placeholder="Enter your age" style={{ padding: "10px", border: "1px solid #ccc", borderRadius: "4px" }} required />
-        <select id="gender" name="gender" style={{ padding: "10px", border: "1px solid #ccc", borderRadius: "4px" }} required>
-          <option value="" disabled selected>Select Gender</option>
-          <option value="male">Male</option>
-          <option value="female">Female</option>
-          <option value="other">Other</option>
-        </select>
-        <select id="category" name="category" style={{ padding: "10px", border: "1px solid #ccc", borderRadius: "4px" }} required>
-          <option value="" disabled selected>Select Category</option>
-          <option value="5km">5 km</option>
-          <option value="10km">10 km</option>
-          <option value="20km">20 km</option>
-        </select>
-        <button type="submit" id="payNow" style={{ backgroundColor: "#28a745", color: "white", padding: "12px", borderRadius: "4px", fontSize: "16px", fontWeight: "bold", cursor: "pointer", marginTop: "10px" }}>Register & Pay</button>
-      </form>
+      <div style={{ backgroundColor: "white", padding: "30px", borderRadius: "8px", boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)", width: "100%", maxWidth: "500px" }}>
+        <h2 style={{ textAlign: "center", fontSize: "24px", fontWeight: "600", marginBottom: "20px" }}>Register for the Marathon</h2>
+        <form id="registrationForm" style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+          <input type="text" id="name" name="name" placeholder="Enter your name" style={{ padding: "10px", border: "1px solid #ccc", borderRadius: "4px" }} required />
+          <input type="email" id="email" name="email" placeholder="Enter your email" style={{ padding: "10px", border: "1px solid #ccc", borderRadius: "4px" }} required />
+          <input type="tel" id="phone" name="phone" placeholder="Enter your phone number" style={{ padding: "10px", border: "1px solid #ccc", borderRadius: "4px" }} required />
+          <input type="number" id="age" name="age" placeholder="Enter your age" style={{ padding: "10px", border: "1px solid #ccc", borderRadius: "4px" }} required />
+          <select id="gender" name="gender" style={{ padding: "10px", border: "1px solid #ccc", borderRadius: "4px" }} required>
+            <option value="" disabled selected>Select Gender</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="other">Other</option>
+          </select>
+          <select id="category" name="category" style={{ padding: "10px", border: "1px solid #ccc", borderRadius: "4px" }} required>
+            <option value="" disabled selected>Select Category</option>
+            <option value="5km">5 km</option>
+            <option value="10km">10 km</option>
+            <option value="20km">20 km</option>
+          </select>
+          <button type="submit" id="payNow" style={{ backgroundColor: "#28a745", color: "white", padding: "12px", borderRadius: "4px", fontSize: "16px", fontWeight: "bold", cursor: "pointer", marginTop: "10px" }}>Register & Pay</button>
+        </form>
+      </div>
     </div>
-  </div>
   );
 };
 

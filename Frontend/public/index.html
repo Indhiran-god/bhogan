@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Polo Marathon Registration</title>
+
+  <!-- External Styles and Fonts -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+  <!-- Local CSS -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+  <!-- Hero Section -->
+  <section id="home" class="hero wow animate__fadeIn" data-wow-duration="1.5s">
+    <div class="hero-content">
+      <h1>Welcome to the Polo Marathon</h1>
+      <p>Run For Horses</p>
+      <a href="#register" class="btn">Register Now</a>
+    </div>
+  </section>
+
+  <!-- Registration Form Section -->
+  <section id="register" class="wow animate__fadeIn" data-wow-duration="1.5s">
+    <div class="container">
+      <h2>Marathon Registration Form</h2>
+
+      <form id="registrationForm">
+        <label for="name">Name</label>
+        <input type="text" id="name" name="name" placeholder="Enter your Full name" required>
+
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" placeholder="Enter your Email" required>
+
+        <label for="phone">Phone</label>
+        <input type="tel" id="phone" name="phone" placeholder="Enter your Phone number" required>
+
+        <label for="age">Age</label>
+        <input type="number" id="age" name="age" placeholder="Enter your Age" required>
+
+        <label for="gender">Gender</label>
+        <select id="gender" name="gender" required>
+          <option value="" disabled selected>Choose Gender...</option>
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+          <option value="other">Other</option>
+        </select>
+
+        <label for="category">Run Category</label>
+        <select id="category" name="category" required>
+          <option value="" disabled selected>Choose Category...</option>
+          <option value="5km">5 km</option>
+          <option value="10km">10 km</option>
+          <option value="20km">20 km</option>
+        </select>
+
+        <button type="submit" id="payNow">Register</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2025 Bhogan Mediasoft. All rights reserved.</p>
+  </footer>
+
+  <!-- External Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/wow/1.1.2/wow.min.js"></script>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+  <!-- Local JavaScript -->
+  <script src="script.js"></script>
+
+  <script>
+    new WOW().init(); // Initialize wow.js
+  </script>
+
+</body>
+
+</html>

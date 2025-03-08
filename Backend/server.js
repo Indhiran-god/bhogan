@@ -10,34 +10,36 @@ const userRoutes = require("./routes/user");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ✅ CORS Configuration
+// ✅ Enhanced CORS Configuration
 app.use(cors({
-  origin: ["http://bhogan-hpdi.vercel.app", "https://bhogan.vercel.app"],
+  origin: [
+    "http://localhost:3000",
+    "http://bhogan-hpdi.vercel.app", 
+    "https://bhogan.vercel.app"
+  ],
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  exposedHeaders: ["x-rtb-fingerprint-id"] // ✅ Correctly expose header
+  allowedHeaders: ["Content-Type", "Authorization", "x-rtb-fingerprint-id"],
+  exposedHeaders: ["x-rtb-fingerprint-id"]
 }));
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*"); // Allow all origins (for debugging, restrict later)
-  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
-  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  next();
-});
+
+// Remove the manual CORS headers middleware - they're redundant with the cors package
 
 app.use(express.json());
-app.use(express.static(path.join(__dirname, "public"))); // ✅ Ensure folder exists
+app.use(express.static(path.join(__dirname, "public")));
 
-// ✅ MongoDB Connection
+// ✅ Improved MongoDB Connection
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
+  serverSelectionTimeoutMS: 5000,
+  socketTimeoutMS: 45000
 })
-  .then(() => console.log("✅ MongoDB connected"))
-  .catch((err) => {
-    console.error("❌ MongoDB connection error:", err);
-    process.exit(1); // Stop server if MongoDB fails
-  });
+.then(() => console.log("✅ MongoDB connected"))
+.catch((err) => {
+  console.error("❌ MongoDB connection error:", err);
+  process.exit(1);
+});
 
 // ✅ Razorpay Instance
 const razorpay = new Razorpay({
@@ -45,29 +47,47 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
-// ✅ Get Razorpay Key
+// ✅ Enhanced Razorpay Key Endpoint
 app.get("/get-razorpay-key", (req, res) => {
-  res.json({ key: process.env.RAZORPAY_KEY_ID });
+  res.header("Cache-Control", "no-store");
+  res.json({ 
+    key: process.env.RAZORPAY_KEY_ID,
+    currency: "INR"
+  });
 });
 
-// ✅ Create Razorpay Order
+// ✅ Improved Order Creation Endpoint
 app.post("/createOrder", async (req, res) => {
   try {
     const { amount } = req.body;
-    if (!amount || isNaN(amount) || amount <= 0) {
-      return res.status(400).json({ msg: "Invalid amount" });
+    
+    if (!amount || isNaN(amount) {
+      return res.status(400).json({ 
+        code: "INVALID_AMOUNT",
+        msg: "Amount must be a valid number"
+      });
     }
 
     const order = await razorpay.orders.create({
-      amount: Math.round(amount * 100), // ✅ Convert to paise
+      amount: Math.round(Math.abs(amount) * 100),
       currency: "INR",
       receipt: `order_${Date.now()}`,
+      payment_capture: 1
     });
 
-    res.status(200).json(order);
+    res.json({
+      id: order.id,
+      amount: order.amount,
+      currency: order.currency
+    });
+    
   } catch (error) {
-    console.error("❌ Razorpay Order Error:", error);
-    res.status(500).json({ msg: "Error creating order", error: error.message });
+    console.error("❌ Razorpay Error:", error);
+    res.status(500).json({
+      code: "PAYMENT_GATEWAY_ERROR",
+      msg: "Error creating payment order",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined
+    });
   }
 });
 
@@ -75,14 +95,26 @@ app.post("/createOrder", async (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 
-// ✅ Global Error Handling Middleware
+// ✅ Enhanced Error Handling
 app.use((err, req, res, next) => {
-  console.error("❌ Global Error:", err.stack);
-  res.status(500).json({ error: "Internal Server Error", message: err.message });
+  console.error("❌ Error:", {
+    path: req.path,
+    method: req.method,
+    error: err.stack
+  });
+  
+  res.status(500).json({
+    code: "INTERNAL_ERROR",
+    msg: "An unexpected error occurred",
+    reference: Date.now().toString(36)
+  });
 });
 
-// ✅ Start Server
-app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
+// ✅ Server Startup
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🔗 Environment: ${process.env.NODE_ENV || "development"}`);
+});
 
 
 

@@ -1,6 +1,9 @@
-{
-  "short_name": "React App",
-  "name": "Create React App Sample",
+{  "name": "Polo Marathon",
+  "short_name": "PoloMarathon",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#3399cc",
+  "background_color": "#ffffff",
   "icons": [
     {
       "src": "favicon.ico",
@@ -18,8 +21,5 @@
       "sizes": "512x512"
     }
   ],
-  "start_url": ".",
-  "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+
 }

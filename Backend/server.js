@@ -10,6 +10,15 @@ const userRoutes = require("./routes/user");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// ✅ Global Middleware for Headers
+app.use((req, res, next) => {
+    res.setHeader("Access-Control-Allow-Origin", "*");  // Or specify frontend URL
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, x-rtb-fingerprint-id");
+    res.setHeader("Access-Control-Expose-Headers", "x-rtb-fingerprint-id"); // Expose the header
+    next();
+});
+
 // ✅ Enhanced CORS Configuration
 app.use(cors({
   origin: [
@@ -26,13 +35,7 @@ app.use(cors({
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
-// ✅ Middleware to Expose Headers in Every Response
-app.use((req, res, next) => {
-  res.setHeader("Access-Control-Expose-Headers", "x-rtb-fingerprint-id");
-  next();
-});
-
-// ✅ Improved MongoDB Connection
+// ✅ MongoDB Connection
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -51,14 +54,13 @@ const razorpay = new Razorpay({
 // ✅ Razorpay Key Endpoint
 app.get("/get-razorpay-key", (req, res) => {
   res.header("Cache-Control", "no-store");
-  res.setHeader("Access-Control-Expose-Headers", "x-rtb-fingerprint-id"); // Added here
   res.json({ 
     key: process.env.RAZORPAY_KEY_ID,
     currency: "INR"
   });
 });
 
-// ✅ Order Creation Endpoint (Fixed Syntax)
+// ✅ Order Creation Endpoint
 app.post("/createOrder", async (req, res) => {
   try {
     const { amount } = req.body;
@@ -77,7 +79,6 @@ app.post("/createOrder", async (req, res) => {
       payment_capture: 1
     });
 
-    res.setHeader("Access-Control-Expose-Headers", "x-rtb-fingerprint-id"); // Added here
     res.json({
       id: order.id,
       amount: order.amount,
@@ -98,7 +99,7 @@ app.post("/createOrder", async (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 
-// ✅ Enhanced Error Handling
+// ✅ Error Handling Middleware
 app.use((err, req, res, next) => {
   console.error("❌ Error:", {
     path: req.path,
@@ -106,7 +107,6 @@ app.use((err, req, res, next) => {
     error: err.stack
   });
   
-  res.setHeader("Access-Control-Expose-Headers", "x-rtb-fingerprint-id"); // Added here
   res.status(500).json({
     code: "INTERNAL_ERROR",
     msg: "An unexpected error occurred",
@@ -119,8 +119,3 @@ app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`🔗 Environment: ${process.env.NODE_ENV || "development"}`);
 });
-
-
-
-
-

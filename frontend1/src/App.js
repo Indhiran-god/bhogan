@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import './App.css';
-import background from './assets/background.jpg';
+import background from './background.jpg';
 
 const App = () => {
   const [loading, setLoading] = useState(false);

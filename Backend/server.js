@@ -18,6 +18,12 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization"],
   exposedHeaders: ["x-rtb-fingerprint-id"] // ✅ Correctly expose header
 }));
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*"); // Allow all origins (for debugging, restrict later)
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  next();
+});
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public"))); // ✅ Ensure folder exists

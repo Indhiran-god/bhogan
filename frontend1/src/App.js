@@ -100,7 +100,7 @@ const App = () => {
  const orderResponse = await fetch("https://bhogan-hpdi.vercel.app/createOrder", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ amount: 100 }),
+  body: JSON.stringify({ amount: 1 }),
 });
 
 

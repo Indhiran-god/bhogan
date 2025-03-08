@@ -93,7 +93,7 @@ const App = () => {
 
     try {
       // Get Razorpay key
-      const keyResponse = await fetch("https://bhogan-hpdi.vercel.app/api/get-razorpay-key");
+      const keyResponse = await fetch("https://bhogan-hpdi.vercel.app/get-razorpay-key");
       if (!keyResponse.ok) throw new Error("Failed to fetch Razorpay key");
       const { key } = await keyResponse.json();
 

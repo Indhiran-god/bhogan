@@ -11,7 +11,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors({
-  origin: "http://bhogan-hpdi.vercel.app", 
+  origin: "https://bhogan.vercel.app", 
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE"],
 }));

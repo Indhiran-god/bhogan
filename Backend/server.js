@@ -11,9 +11,10 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors({
-  origin: "https://bhogan.vercel.app", 
+  origin: ["http://bhogan-hpdi.vercel.app", "https://bhogan.vercel.app"],
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization", "x-rtb-fingerprint-id"] // Add any required headers here
 }));
 
 app.use(express.json());

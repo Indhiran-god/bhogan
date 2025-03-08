@@ -14,7 +14,7 @@ const PORT = process.env.PORT || 3000;
 app.use(cors({
   origin: [
     "http://localhost:3000",
-    "http://bhogan-hpdi.vercel.app", 
+    "http://bhogan-hpdi.vercel.app",
     "https://bhogan.vercel.app"
   ],
   credentials: true,
@@ -22,8 +22,6 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization", "x-rtb-fingerprint-id"],
   exposedHeaders: ["x-rtb-fingerprint-id"]
 }));
-
-// Remove the manual CORS headers middleware - they're redundant with the cors package
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
@@ -36,10 +34,7 @@ mongoose.connect(process.env.MONGO_URI, {
   socketTimeoutMS: 45000
 })
 .then(() => console.log("✅ MongoDB connected"))
-.catch((err) => {
-  console.error("❌ MongoDB connection error:", err);
-  process.exit(1);
-});
+.catch((err) => console.error("❌ MongoDB connection error:", err));
 
 // ✅ Razorpay Instance
 const razorpay = new Razorpay({
@@ -47,7 +42,7 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
-// ✅ Enhanced Razorpay Key Endpoint
+// ✅ Razorpay Key Endpoint
 app.get("/get-razorpay-key", (req, res) => {
   res.header("Cache-Control", "no-store");
   res.json({ 
@@ -56,12 +51,12 @@ app.get("/get-razorpay-key", (req, res) => {
   });
 });
 
-// ✅ Improved Order Creation Endpoint
+// ✅ Order Creation Endpoint (Fixed Syntax)
 app.post("/createOrder", async (req, res) => {
   try {
     const { amount } = req.body;
     
-    if (!amount || isNaN(amount) {
+    if (!amount || isNaN(amount)) {  // Fixed missing parenthesis
       return res.status(400).json({ 
         code: "INVALID_AMOUNT",
         msg: "Amount must be a valid number"
@@ -115,6 +110,7 @@ app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`🔗 Environment: ${process.env.NODE_ENV || "development"}`);
 });
+
 
 
 

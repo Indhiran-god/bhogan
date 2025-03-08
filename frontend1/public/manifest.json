@@ -7,11 +7,6 @@
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#3399cc",
-  "serviceworker": {
-    "src": "/service-worker.js",
-    "scope": "/",
-    "type": "module"
-  },
   "icons": [
     {
       "src": "favicon.ico",
@@ -32,5 +27,6 @@
     }
   ]
 }
+
 
 

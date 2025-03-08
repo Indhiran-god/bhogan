@@ -1,4 +1,5 @@
-{  "name": "Polo Marathon",
+{
+  "name": "Polo Marathon",
   "short_name": "PoloMarathon",
   "start_url": "/",
   "display": "standalone",
@@ -20,6 +21,6 @@
       "type": "image/png",
       "sizes": "512x512"
     }
-  ],
-
+  ]
 }
+

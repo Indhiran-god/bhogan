@@ -10,7 +10,12 @@ const userRoutes = require("./routes/user");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
+app.use(cors({
+  origin: "http://bhogan-hpdi.vercel.app", 
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE"],
+}));
+
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public"))); // Ensure correct folder exists
 
@@ -41,7 +46,7 @@ app.post("/createOrder", async (req, res) => {
     }
 
     const order = await razorpay.orders.create({
-      amount: 100,
+      amount: amount * 100, // Convert to paise
       currency: "INR",
       receipt: `order_${Date.now()}`,
     });
@@ -56,4 +61,5 @@ app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 
 app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
+
 

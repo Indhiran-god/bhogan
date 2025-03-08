@@ -24,7 +24,8 @@ app.use(cors({
   origin: [
     "http://localhost:3000",
     "http://bhogan-hpdi.vercel.app",
-    "https://bhogan.vercel.app"
+    "https://bhogan.vercel.app",
+    "https://bbbbbb-iota.vercel.app"
   ],
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE"],

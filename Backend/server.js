@@ -10,6 +10,7 @@ const userRoutes = require("./routes/user");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+
 // ✅ Global Middleware for Headers (Allow All Origins)
 app.use((req, res, next) => {
     res.setHeader("Access-Control-Allow-Origin", "*");  // Allow all origins

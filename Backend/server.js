@@ -7,7 +7,6 @@ const Razorpay = require("razorpay");
 const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/user");
 
-
 const app = express();
 const PORT = process.env.PORT || 3000;
 

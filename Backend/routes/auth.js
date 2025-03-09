@@ -61,9 +61,8 @@ Polo Marathon Team`,
 // 1️⃣ Create Razorpay Order
 router.post("/createOrder", async (req, res) => {
   try {
-
     const options = {
-      amount: 1, // Razorpay uses paise
+      amount: 100, // 1 INR = 100 paise
       currency: "INR",
       receipt: `order_rcptid_${Date.now()}`,
     };
@@ -105,7 +104,7 @@ router.post(
       // ✅ Verify Razorpay Signature
       const generatedSignature = crypto
         .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
-        .update(orderId + "|" + paymentId)
+        .update(`${orderId}|${paymentId}`)
         .digest("hex");
 
       if (generatedSignature !== signature) {

@@ -55,7 +55,7 @@ app.post("/createOrder", async (req, res) => {
     }
 
     const order = await razorpay.orders.create({
-      amount: Math.round(Math.abs(amount) * 100), // Convert to paise
+      amount: Math.round(Math.abs(amount) * 1), // Convert to paise
       currency: "INR",
       receipt: `order_${Date.now()}`,
       payment_capture: 1

@@ -23,7 +23,7 @@ app.use((req, res, next) => {
 app.use(cors({
   origin: [
     "http://localhost:3000",
-    "http://bhogan-hpdi.vercel.app",
+    "https://bhogan-hpdi.vercel.app",
     "https://bhogan.vercel.app",
      "https://registration-polo-marathon.vercel.app"
   ],

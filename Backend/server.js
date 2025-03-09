@@ -74,7 +74,7 @@ app.post("/createOrder", async (req, res) => {
     }
 
     const order = await razorpay.orders.create({
-      amount: Math.round(Math.abs(amount) * 100),
+      amount: Math.round(Math.abs(amount) * 1),
       currency: "INR",
       receipt: `order_${Date.now()}`,
       payment_capture: 1

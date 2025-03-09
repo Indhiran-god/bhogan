@@ -4,64 +4,48 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const path = require("path");
 const Razorpay = require("razorpay");
-const authRoutes = require("./routes/auth");
-const userRoutes = require("./routes/user");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-
-// ✅ Global Middleware for Headers (Allow All Origins)
-app.use((req, res, next) => {
-    res.setHeader("Access-Control-Allow-Origin", "*");  // Allow all origins
-    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, x-rtb-fingerprint-id");
-    res.setHeader("Access-Control-Expose-Headers", "x-rtb-fingerprint-id");
-    next();
-});
-
-// ✅ CORS Middleware (Allow All Origins)
+// Middleware
 app.use(cors({
-  origin: "*",  // Allow all origins
-  credentials: false, // Since all origins are allowed, credentials should be false
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization", "x-rtb-fingerprint-id"],
-  exposedHeaders: ["x-rtb-fingerprint-id"]
+  origin: "https://bhogan.vercel.app", // Allow frontend origin
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
 }));
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
-// ✅ MongoDB Connection
+// MongoDB Connection
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
-  serverSelectionTimeoutMS: 5000,
-  socketTimeoutMS: 45000
 })
 .then(() => console.log("✅ MongoDB connected"))
 .catch((err) => console.error("❌ MongoDB connection error:", err));
 
-// ✅ Razorpay Instance
+// Razorpay Instance
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
-// ✅ Razorpay Key Endpoint
+// Razorpay Key Endpoint
 app.get("/get-razorpay-key", (req, res) => {
-  res.header("Cache-Control", "no-store");
   res.json({ 
     key: process.env.RAZORPAY_KEY_ID,
     currency: "INR"
   });
 });
 
-// ✅ Order Creation Endpoint
+// Order Creation Endpoint
 app.post("/createOrder", async (req, res) => {
   try {
     const { amount } = req.body;
-    
+
     if (!amount || isNaN(amount)) {
       return res.status(400).json({ 
         code: "INVALID_AMOUNT",
@@ -70,7 +54,7 @@ app.post("/createOrder", async (req, res) => {
     }
 
     const order = await razorpay.orders.create({
-      amount: Math.round(Math.abs(amount) * 1),
+      amount: Math.round(Math.abs(amount) * 100), // Convert to paise
       currency: "INR",
       receipt: `order_${Date.now()}`,
       payment_capture: 1
@@ -81,29 +65,25 @@ app.post("/createOrder", async (req, res) => {
       amount: order.amount,
       currency: order.currency
     });
-    
+
   } catch (error) {
-    console.error("❌ Razorpay Error:", error);
+    console.error("❌ Razorpay Error:", error.error || error);
     res.status(500).json({
       code: "PAYMENT_GATEWAY_ERROR",
       msg: "Error creating payment order",
-      error: process.env.NODE_ENV === "development" ? error.message : undefined
+      error: process.env.NODE_ENV === "development" ? error.error : undefined
     });
   }
 });
 
-// ✅ Routes
-app.use("/api/auth", authRoutes);
-app.use("/api/user", userRoutes);
-
-// ✅ Error Handling Middleware
+// Error Handling Middleware
 app.use((err, req, res, next) => {
   console.error("❌ Error:", {
     path: req.path,
     method: req.method,
     error: err.stack
   });
-  
+
   res.status(500).json({
     code: "INTERNAL_ERROR",
     msg: "An unexpected error occurred",
@@ -111,7 +91,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-// ✅ Server Startup
+// Server Startup
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`🔗 Environment: ${process.env.NODE_ENV || "development"}`);

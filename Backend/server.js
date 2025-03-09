@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const path = require("path");
 const Razorpay = require("razorpay");
+const crypto = require("crypto");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -60,6 +61,7 @@ app.post("/createOrder", async (req, res) => {
       payment_capture: 1
     });
 
+    console.log("🛒 Order Created:", order);
     res.json({
       id: order.id,
       amount: order.amount,
@@ -73,6 +75,37 @@ app.post("/createOrder", async (req, res) => {
       msg: "Error creating payment order",
       error: process.env.NODE_ENV === "development" ? error.error : undefined
     });
+  }
+});
+
+// Webhook Endpoint
+app.post("/razorpay-webhook", express.json({ type: "application/json" }), (req, res) => {
+  const body = req.body;
+  const signature = req.headers["x-razorpay-signature"];
+
+  // Verify the webhook signature
+  const expectedSignature = crypto
+    .createHmac("sha256", process.env.RAZORPAY_WEBHOOK_SECRET)
+    .update(JSON.stringify(body))
+    .digest("hex");
+
+  if (expectedSignature === signature) {
+    console.log("✅ Webhook signature verified");
+    // Handle payment events
+    switch (body.event) {
+      case "payment.captured":
+        console.log("Payment Captured:", body.payload.payment.entity);
+        break;
+      case "payment.failed":
+        console.log("Payment Failed:", body.payload.payment.entity);
+        break;
+      default:
+        console.log("Unhandled event:", body.event);
+    }
+    res.status(200).send("Webhook received");
+  } else {
+    console.error("❌ Webhook signature verification failed");
+    res.status(400).send("Invalid signature");
   }
 });
 

@@ -7,28 +7,22 @@ const Razorpay = require("razorpay");
 const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/user");
 
-
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ✅ Global Middleware for Headers
+// ✅ Global Middleware for Headers (Allow All Origins)
 app.use((req, res, next) => {
-    res.setHeader("Access-Control-Allow-Origin", "*");  // Or specify frontend URL
+    res.setHeader("Access-Control-Allow-Origin", "*");  // Allow all origins
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
     res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, x-rtb-fingerprint-id");
-    res.setHeader("Access-Control-Expose-Headers", "x-rtb-fingerprint-id"); // Expose the header
+    res.setHeader("Access-Control-Expose-Headers", "x-rtb-fingerprint-id");
     next();
 });
 
-// ✅ Enhanced CORS Configuration
+// ✅ CORS Middleware (Allow All Origins)
 app.use(cors({
-  origin: [
-    "http://localhost:3000",
-    "https://bhogan-hpdi.vercel.app",
-    "https://bhogan.vercel.app",
-     "https://registration-polo-marathon.vercel.app"
-  ],
-  credentials: true,
+  origin: "*",  // Allow all origins
+  credentials: false, // Since all origins are allowed, credentials should be false
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization", "x-rtb-fingerprint-id"],
   exposedHeaders: ["x-rtb-fingerprint-id"]
@@ -121,3 +115,4 @@ app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`🔗 Environment: ${process.env.NODE_ENV || "development"}`);
 });
+

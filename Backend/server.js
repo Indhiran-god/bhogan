@@ -4,130 +4,63 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const path = require("path");
 const Razorpay = require("razorpay");
-const crypto = require("crypto");
+const authRoutes = require("./routes/auth");
+const userRoutes = require("./routes/user");
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT;
 
-// Middleware
 app.use(cors({
   origin: [
-    "http://localhost:3000","https://bhogan.vercel.app"] // Allow frontend origin
+    "http://localhost:3000","https://bhogan.vercel.app"],
   credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
+  methods: ["GET", "POST", "PUT", "DELETE"],
 }));
 
 app.use(express.json());
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(path.join(__dirname, "public"))); // Ensure correct folder exists
 
-// MongoDB Connection
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
-.then(() => console.log("✅ MongoDB connected"))
-.catch((err) => console.error("❌ MongoDB connection error:", err));
+  .then(() => console.log("✅ MongoDB connected"))
+  .catch((err) => {
+    console.error("❌ MongoDB connection error:", err);
+    process.exit(1); // Stop server if MongoDB fails
+  });
 
-// Razorpay Instance
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
-// Razorpay Key Endpoint
 app.get("/get-razorpay-key", (req, res) => {
-  res.json({ 
-    key: process.env.RAZORPAY_KEY_ID,
-    currency: "INR"
-  });
+  res.json({ key: process.env.RAZORPAY_KEY_ID });
 });
 
-// Order Creation Endpoint
 app.post("/createOrder", async (req, res) => {
   try {
     const { amount } = req.body;
-
-    if (!amount || isNaN(amount)) {
-      return res.status(400).json({ 
-        code: "INVALID_AMOUNT",
-        msg: "Amount must be a valid number"
-      });
+    if (!amount) {
+      return res.status(400).json({ msg: "Amount is required" });
     }
 
     const order = await razorpay.orders.create({
-      amount: Math.round(Math.abs(amount) * 1), // Convert to paise
+      amount: amount , // Convert to paise
       currency: "INR",
       receipt: `order_${Date.now()}`,
-      payment_capture: 1
     });
-
-    console.log("🛒 Order Created:", order);
-    res.json({
-      id: order.id,
-      amount: order.amount,
-      currency: order.currency
-    });
-
+    res.status(200).json(order);
   } catch (error) {
-    console.error("❌ Razorpay Error:", error.error || error);
-    res.status(500).json({
-      code: "PAYMENT_GATEWAY_ERROR",
-      msg: "Error creating payment order",
-      error: process.env.NODE_ENV === "development" ? error.error : undefined
-    });
+    console.error("❌ Razorpay Order Error:", error);
+    res.status(500).json({ msg: "Error creating order", error: error.message });
   }
 });
 
-// Webhook Endpoint
-app.post("/razorpay-webhook", express.json({ type: "application/json" }), (req, res) => {
-  const body = req.body;
-  const signature = req.headers["x-razorpay-signature"];
+app.use("/api/auth", authRoutes);
+app.use("/api/user", userRoutes);
 
-  // Verify the webhook signature
-  const expectedSignature = crypto
-    .createHmac("sha256", process.env.RAZORPAY_WEBHOOK_SECRET)
-    .update(JSON.stringify(body))
-    .digest("hex");
+app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
 
-  if (expectedSignature === signature) {
-    console.log("✅ Webhook signature verified");
-    // Handle payment events
-    switch (body.event) {
-      case "payment.captured":
-        console.log("Payment Captured:", body.payload.payment.entity);
-        break;
-      case "payment.failed":
-        console.log("Payment Failed:", body.payload.payment.entity);
-        break;
-      default:
-        console.log("Unhandled event:", body.event);
-    }
-    res.status(200).send("Webhook received");
-  } else {
-    console.error("❌ Webhook signature verification failed");
-    res.status(400).send("Invalid signature");
-  }
-});
-
-// Error Handling Middleware
-app.use((err, req, res, next) => {
-  console.error("❌ Error:", {
-    path: req.path,
-    method: req.method,
-    error: err.stack
-  });
-
-  res.status(500).json({
-    code: "INTERNAL_ERROR",
-    msg: "An unexpected error occurred",
-    reference: Date.now().toString(36)
-  });
-});
-
-// Server Startup
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`🔗 Environment: ${process.env.NODE_ENV || "development"}`);
-});
 

@@ -4,41 +4,53 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const path = require("path");
 const Razorpay = require("razorpay");
-const authRoutes = require("./routes/auth");
-const userRoutes = require("./routes/user");
 
 const app = express();
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 5000;
 
-app.use(cors({
-  origin: [
-    "http://localhost:3000","https://bhogan.vercel.app"],
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE"],
-}));
+// Middleware for CORS
+app.use(
+  cors({
+    origin: [
+      "http://localhost:3000",
+      "https://bhogan.vercel.app",
+      "https://bhogan-hpdi.vercel.app",
+    ],
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE"],
+  })
+);
 
+// Middleware for parsing JSON
 app.use(express.json());
-app.use(express.static(path.join(__dirname, "public"))); // Ensure correct folder exists
 
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
+// Serve static files (if any)
+app.use(express.static(path.join(__dirname, "public")));
+
+// MongoDB Connection
+mongoose
+  .connect(process.env.MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
   .then(() => console.log("✅ MongoDB connected"))
   .catch((err) => {
     console.error("❌ MongoDB connection error:", err);
     process.exit(1); // Stop server if MongoDB fails
   });
 
+// Razorpay Instance
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
+// Route to get Razorpay key
 app.get("/get-razorpay-key", (req, res) => {
   res.json({ key: process.env.RAZORPAY_KEY_ID });
 });
 
+// Route to create a Razorpay order
 app.post("/createOrder", async (req, res) => {
   try {
     const { amount } = req.body;
@@ -47,7 +59,7 @@ app.post("/createOrder", async (req, res) => {
     }
 
     const order = await razorpay.orders.create({
-      amount: amount , // Convert to paise
+      amount: amount,
       currency: "INR",
       receipt: `order_${Date.now()}`,
     });
@@ -58,9 +70,7 @@ app.post("/createOrder", async (req, res) => {
   }
 });
 
-app.use("/api/auth", authRoutes);
-app.use("/api/user", userRoutes);
-
+// Start the server
 app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
 
 

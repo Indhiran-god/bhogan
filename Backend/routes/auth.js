@@ -7,6 +7,12 @@ const nodemailer = require("nodemailer");
 
 const router = express.Router();
 
+// Initialize Razorpay instance
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
+});
+
 // Helper: Generate Chest Number (Auto-Increment)
 const getNextChestNumber = async () => {
   const lastUser = await User.findOne().sort({ chestNumber: -1 });
@@ -52,7 +58,26 @@ Polo Marathon Team`,
   }
 };
 
-// Register User (After Payment Verification)
+// 1️⃣ Create Razorpay Order
+router.post("/createOrder", async (req, res) => {
+  try {
+
+    const options = {
+      amount: 100, // Razorpay uses paise
+      currency: "INR",
+      receipt: `order_rcptid_${Date.now()}`,
+    };
+
+    const order = await razorpay.orders.create(options);
+    console.log("🛒 Order Created:", order);
+    res.status(200).json(order);
+  } catch (error) {
+    console.error("❌ Error creating Razorpay order:", error);
+    res.status(500).json({ msg: "Error creating order", error: error.message });
+  }
+});
+
+// 2️⃣ Register User (After Payment Verification)
 router.post(
   "/register",
   [
@@ -70,16 +95,17 @@ router.post(
     try {
       const { name, email, phone, age, gender, category, paymentId, orderId, signature } = req.body;
 
+      // Log incoming data
       console.log("🔍 Incoming Registration Data:", req.body);
 
       if (!paymentId || paymentId === "N/A") {
         return res.status(400).json({ msg: "Invalid Payment ID. Registration failed." });
       }
 
-      // Verify Razorpay Signature
+      // ✅ Verify Razorpay Signature
       const generatedSignature = crypto
         .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
-        .update(`${orderId}|${paymentId}`)
+        .update(orderId + "|" + paymentId)
         .digest("hex");
 
       if (generatedSignature !== signature) {
@@ -87,7 +113,7 @@ router.post(
         return res.status(400).json({ msg: "Payment verification failed: Invalid signature." });
       }
 
-      // Fetch and Check Payment Status
+      // ✅ Fetch and Check Payment Status
       const payment = await razorpay.payments.fetch(paymentId);
       console.log("🔎 Payment Status:", payment.status);
 
@@ -95,10 +121,10 @@ router.post(
         return res.status(400).json({ msg: "Payment verification failed: Payment not captured." });
       }
 
-      // Generate Chest Number
+      // ✅ Generate Chest Number
       const chestNumber = await getNextChestNumber();
 
-      // Save User Data in Database
+      // ✅ Save User Data in Database
       const newUser = new User({
         name,
         email,
@@ -113,7 +139,7 @@ router.post(
       await newUser.save();
       console.log("✅ User Registered Successfully:", newUser);
 
-      // Send Confirmation Email
+      // ✅ Send Confirmation Email
       await sendConfirmationEmail(newUser);
 
       return res.status(201).json({
@@ -128,4 +154,5 @@ router.post(
 );
 
 module.exports = router;
+
 

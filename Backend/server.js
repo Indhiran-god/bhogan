@@ -14,26 +14,36 @@ const userRoutes = require("./routes/user");
 const app = express();
 const PORT = process.env.PORT || 8000;
 
-// Enhanced CORS configuration
+// Enhanced Security Headers
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "https://checkout.razorpay.com"],
+      frameSrc: ["https://checkout.razorpay.com"],
+      imgSrc: ["'self'", "data:", "https://i.postimg.cc"],
+    }
+  }
+}));
+
+// CORS Configuration
+const allowedOrigins = [
+  "https://bhogan.vercel.app",
+  "https://bhogan-hpdi.vercel.app",
+  "http://localhost:3000"
+];
+
 const corsOptions = {
-  origin: (origin, callback) => {
-    const allowedOrigins = [
-      "https://bhogan.vercel.app",
-      "http://localhost:3000",
-      "https://bhogan-hpdi.vercel.app" // Add backend domain for completeness
-    ];
-
-    // Allow requests with no origin (mobile apps, postman, etc)
-    if (!origin) return callback(null, true);
-
-    // Check against allowed origins
-    const isAllowed = allowedOrigins.some(allowed => 
-      origin === allowed || 
-      origin.startsWith(`${allowed}/`) || // Allow subpaths
-      origin.replace(/\/$/, "") === allowed.replace(/\/$/, "") // Ignore trailing slash
-    );
-
-    isAllowed ? callback(null, true) : callback(new Error(`CORS blocked: ${origin}`));
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.some(allowed => 
+      origin === allowed ||
+      origin.startsWith(`${allowed}/`) ||
+      origin.replace(/\/$/, "") === allowed.replace(/\/$/, "")
+    )) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS blocked: ${origin}`));
+    }
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE"],
@@ -41,11 +51,7 @@ const corsOptions = {
   exposedHeaders: ["Authorization", "X-Response-Time"]
 };
 
-// Security Middleware
-app.use(helmet());
 app.use(cors(corsOptions));
-
-// Explicit preflight handling
 app.options("*", cors(corsOptions));
 
 // Rate Limiting
@@ -84,29 +90,23 @@ app.get("/health", (req, res) => {
   res.json({ 
     status: "OK",
     timestamp: new Date(),
-    cors: req.headers.origin 
+    origin: req.headers.origin,
+    allowedOrigins
   });
 });
 
 app.get("/get-razorpay-key", (req, res) => {
-  // Let CORS middleware handle headers
   res.json({ key: process.env.RAZORPAY_KEY_ID });
 });
 
 app.post("/createOrder", async (req, res) => {
   try {
-    const { amount } = req.body;
-    
-    if (!amount || isNaN(amount) || amount < 1) {
-      return res.status(400).json({ error: "Invalid amount" });
-    }
-
+    const amount = 100; // ₹1 = 100 paise (fixed amount)
     const order = await razorpay.orders.create({
-      amount: Math.round(amount * 100),
+      amount: amount,
       currency: "INR",
       receipt: `order_${Date.now()}`
     });
-
     res.status(201).json(order);
   } catch (error) {
     console.error("Razorpay Error:", error);
@@ -121,12 +121,11 @@ app.post("/createOrder", async (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 
-// Universal Error Handler
+// Error Handling
 app.use((err, req, res, next) => {
   console.error("🚨 Error:", err.stack);
   res.status(err.status || 500).json({
     error: err.message || "Internal Server Error",
-    cors: req.headers.origin,
     stack: process.env.NODE_ENV === "development" ? err.stack : undefined
   });
 });
@@ -134,9 +133,7 @@ app.use((err, req, res, next) => {
 // Server Start
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`🔒 CORS allowed origins:`);
-  console.log("   - https://bhogan.vercel.app");
-  console.log("   - http://localhost:3000");
+  console.log("🔒 CORS allowed origins:", allowedOrigins);
 });
 
 
